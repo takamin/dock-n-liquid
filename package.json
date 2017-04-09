@@ -1,11 +1,27 @@
 {
   "name": "dock-n-liquid",
   "version": "0.1.0",
-  "description": "",
+  "description": "Liquid alignment for border-box element",
   "main": "dock-n-liquid.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT"
+  "author": "vzg03566@gmail.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/takamin/dock-n-liquid.git"
+  },
+  "keywords": [
+    "Liquid",
+    "border-box",
+    "box-sizing"
+  ],
+  "bugs": {
+    "url": "https://github.com/takamin/dock-n-liquid/issues"
+  },
+  "homepage": "https://github.com/takamin/dock-n-liquid#readme",
+  "dependencies": {
+    "b-box": "^0.1.0"
+  }
 }

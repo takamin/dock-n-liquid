@@ -2,6 +2,12 @@
     "use strict";
     var BBox = require("b-box");
 
+    function each(arr, handler, obj) {
+        for(var i = 0; i < arr.length; i++) {
+            handler.call(obj, arr[i], i, arr);
+        }
+    }
+
     function LayoutElement(element, rect) {
         element.style["box-sizing"] = "border-box";
         this._element = element;
