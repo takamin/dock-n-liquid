@@ -22,6 +22,6 @@
   },
   "homepage": "https://github.com/takamin/dock-n-liquid#readme",
   "dependencies": {
-    "b-box": "^0.1.0"
+    "b-box": "^0.1.1"
   }
 }
