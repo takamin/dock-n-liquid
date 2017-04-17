@@ -137,6 +137,24 @@
         this._element.style.bottom = rect.bottom + "px";
     };
 
+    LayoutElement.createElement = function(whereToDock, parentElement) {
+
+        if(whereToDock && DOCK_DIR.indexOf(whereToDock) < 0) {
+            throw(whereToDock + "is not recognized. it must be one of " +
+                    DOCK_DIR.join(' '));
+        }
+
+        var div = document.createElement("DIV");
+        div.classList.add("dock");
+        if(whereToDock) {
+            div.classList.add(whereToDock);
+        }
+        if(parentElement) {
+            parentElement.appendChild(div);
+        }
+        return div;
+    };
+
     try {
         module.exports = LayoutElement;
     } catch (err) {
