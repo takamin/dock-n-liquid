@@ -8,6 +8,7 @@
         }
     }
     var DOCK_DIR = [ 'top', 'left', 'right', 'bottom' ];
+
     function LayoutElement(element) {
 
         this._element = element;
@@ -36,10 +37,7 @@
             this._isContent = true;
         }
 
-        this._children = LayoutElement.parseChildren(element);
-        if(this._children.length > 0) {
-            this._isContainer = true;
-        }
+        this.parseChildren();
     }
     LayoutElement.prototype.updateRect = function() {
         if(this._element === document.body) {
@@ -52,6 +50,13 @@
         } else {
             var bbox = new BBox(this._element);
             this._containerRect = BBox.Rect.fromBBox(bbox);
+        }
+    };
+
+    LayoutElement.prototype.parseChildren = function() {
+        this._children = LayoutElement.parseChildren(this._element);
+        if(this._children.length > 0) {
+            this._isContainer = true;
         }
     };
 
@@ -137,10 +142,70 @@
         this._element.style.bottom = rect.bottom + "px";
     };
 
+    LayoutElement.createElement = function(whereToDock, parentElement) {
+
+        if(whereToDock && DOCK_DIR.indexOf(whereToDock) < 0) {
+            throw(whereToDock + "is not recognized. it must be one of " +
+                    DOCK_DIR.join(' '));
+        }
+
+        var div = document.createElement("DIV");
+        div.classList.add("dock");
+        if(whereToDock) {
+            div.classList.add(whereToDock);
+        }
+        if(parentElement) {
+            parentElement.appendChild(div);
+        }
+        return div;
+    };
+
+    LayoutElement.select = function(element) {
+        return new LayoutElement(
+                LayoutElement.getElement(element));
+    };
+
+    LayoutElement.getElement = function(element) {
+
+        if(typeof(element) === "string" &&
+            element.charAt(0) === "#")
+        {
+
+            var id = element.substr(1);
+            return document.getElementById(id);
+
+        } else if(element.constructor.name === "LayoutElement") {
+
+            return element._element;
+
+        }
+
+        return element;
+
+    };
+
+    LayoutElement.prototype.append = function(elements) {
+
+        if(!Array.isArray(elements)) {
+            return this.append([ elements ]);
+        }
+
+        elements.forEach(function(item) {
+            this._element.appendChild(
+                LayoutElement.getElement(item));
+        }, this);
+
+        this.parseChildren();
+        this.layout();
+        return this;
+
+    };
+
     try {
         module.exports = LayoutElement;
     } catch (err) {
         global.LayoutElement = LayoutElement;
     }
+
 }(Function("return this;")()));
 
