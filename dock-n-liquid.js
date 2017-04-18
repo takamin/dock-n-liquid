@@ -75,6 +75,17 @@
 
     LayoutElement.prototype.layout = function() {
         var rect = BBox.Rect.clone(this._containerRect);
+
+        // The range is decreased down to its client width and
+        // height by considering for that the scrollbar might be
+        // shown.
+        while(rect.right - rect.left > this._element.clientWidth) {
+            rect.right--;
+        }
+        while(rect.bottom - rect.top > this._element.clientHeight) {
+            rect.bottom--;
+        }
+
         this._children.forEach(function (child, i) {
             var bboxChild = new BBox(child._element);
             var childWidth = bboxChild.px("width") + bboxChild.marginHorizontalNc();
