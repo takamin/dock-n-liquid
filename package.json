@@ -1,6 +1,6 @@
 {
   "name": "dock-n-liquid",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Liquid alignment for border-box element",
   "main": "dock-n-liquid.js",
   "scripts": {
