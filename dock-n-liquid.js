@@ -1,11 +1,6 @@
 (function(global) {
     "use strict";
 
-    function each(arr, handler, obj) {
-        for(var i = 0; i < arr.length; i++) {
-            handler.call(obj, arr[i], i, arr);
-        }
-    }
     var BBox = null;
     try {
         BBox = require("b-box");
@@ -70,7 +65,7 @@
         var dock_elements = element.getElementsByClassName('dock');
         var result = [];
         if(dock_elements && dock_elements.length > 0) {
-            each(dock_elements, function(dock_element) {
+            Array.from(dock_elements).forEach(function(dock_element) {
                 if(dock_element.parentNode === element) {
                     result.push(new LayoutElement(dock_element));
                 }
