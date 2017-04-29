@@ -1,12 +1,13 @@
 (function(global) {
     "use strict";
-    var BBox = require("b-box");
 
-    function each(arr, handler, obj) {
-        for(var i = 0; i < arr.length; i++) {
-            handler.call(obj, arr[i], i, arr);
-        }
+    var BBox = null;
+    try {
+        BBox = require("b-box");
+    } catch(err) {
+        BBox = global.BBox;
     }
+
     var DOCK_DIR = [ 'top', 'left', 'right', 'bottom' ];
 
     function LayoutElement(element) {
@@ -15,6 +16,7 @@
         this._containerRect = null;
         this._isContent = null;
         this._isContainer = null;
+        this._noArea = false;
 
         this.updateRect();
 
@@ -50,13 +52,19 @@
         } else {
             var bbox = new BBox(this._element);
             this._containerRect = BBox.Rect.fromBBox(bbox);
+            this._containerRect.bottom -=
+                bbox.px("border-top-width") + bbox.px("border-bottom-width");
         }
     };
 
     LayoutElement.prototype.parseChildren = function() {
         this._children = LayoutElement.parseChildren(this._element);
         if(this._children.length > 0) {
+            this._element.classList.add("container");
+            this._element.style["overflow"] = "hidden";
             this._isContainer = true;
+        } else {
+            this._element.classList.add("liquid");
         }
     };
 
@@ -64,7 +72,7 @@
         var dock_elements = element.getElementsByClassName('dock');
         var result = [];
         if(dock_elements && dock_elements.length > 0) {
-            each(dock_elements, function(dock_element) {
+            Array.from(dock_elements).forEach(function(dock_element) {
                 if(dock_element.parentNode === element) {
                     result.push(new LayoutElement(dock_element));
                 }
@@ -85,17 +93,25 @@
         while(rect.bottom - rect.top > this._element.clientHeight) {
             rect.bottom--;
         }
-
+        var zIndexBase = parseInt(this._element.style["z-index"] || "1");
+        console.log("This z-index is " + zIndexBase);
+        zIndexBase += this._children.length;
         this._children.forEach(function (child, i) {
             var bboxChild = new BBox(child._element);
             var childWidth = bboxChild.px("width") + bboxChild.marginHorizontalNc();
             var childHeight = bboxChild.px("height") + bboxChild.marginVerticalNc();
             child.setBound(rect);
-            if(child._element.style.display == "none" ||
-            child._element.style.visibility == "hidden")
+            if(!child._noArea &&
+                    (child._element.style.display == "none" ||
+                     child._element.style.visibility == "hidden"))
             {
                 return;
             }
+
+            child.setNoArea(isRectAreaZero(rect));
+            console.log("  childlen[" + i + "] z-index is " + zIndexBase);
+            child._element.style["z-index"] = zIndexBase--;
+
             if(child._isTop) {
                 child._element.style.bottom = rect.top + childHeight + "px";
                 var bboxChild = new BBox(child._element);
@@ -151,6 +167,28 @@
         this._element.style.left = rect.left + "px";
         this._element.style.right = rect.right + "px";
         this._element.style.bottom = rect.bottom + "px";
+    };
+
+    /**
+     * Is the rect's area zero.
+     */
+    function isRectAreaZero(rect) {
+        return rect.top >= rect.bottom || rect.left >= rect.right;
+    }
+
+    /**
+     * Set no area flag
+     */
+    LayoutElement.prototype.setNoArea = function(noArea) {
+        if(noArea) {
+            this._noArea = true;
+            this._element.style.display = "none";
+            this._element.style.visibility = "hidden";
+        } else {
+            this._noArea = false;
+            this._element.style.display = "block";
+            this._element.style.visibility = "visible";
+        }
     };
 
     LayoutElement.createElement = function(whereToDock, parentElement) {

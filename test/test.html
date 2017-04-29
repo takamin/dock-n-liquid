@@ -1,0 +1,70 @@
+<html>
+<head>
+    <title>test-layout</title>
+    <style>
+    body {
+        margin:0; padding:0;
+    }
+    .dock {
+        border-style: solid;
+        border-top-color: #eee;
+        border-left-color: #eee;
+        border-right-color: #888;
+        border-bottom-color: #888;
+        border-top-width: 1px;
+        border-left-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 1px;
+        margin:0; padding:0;
+    }
+    .dock.top, .dock.bottom { height: 40px; }
+    .dock.left, .dock.right { width: 120px; }
+    .dock.liquid { background-color: #ccc; }
+    .dock.liquid:before { content: "□ Content"; }
+    .dock.top:before { content: "↑ Top"; }
+    .dock.bottom:before { content: "↓ Bottom"; }
+    .dock.left:before { content: "← Left"; }
+    .dock.right:before { content: "→ Right"; }
+    </style>
+</head>
+<body onload="main();">
+    <div id="layout-root" class="dock">
+        <div class="dock top"></div>
+        <div class="dock top"></div>
+        <div class="dock left"></div>
+        <div class="dock left"></div>
+        <div class="dock right"></div>
+        <div class="dock right"></div>
+        <div class="dock bottom"></div>
+        <div class="dock bottom"></div>
+        <div class="dock top"></div>
+        <div class="dock left"></div>
+        <div class="dock right"></div>
+        <div class="dock bottom"></div>
+        <div class="dock">
+            <div class="dock top"></div>
+            <div class="dock top"></div>
+            <div class="dock left"></div>
+            <div class="dock left"></div>
+            <div class="dock right"></div>
+            <div class="dock right"></div>
+            <div class="dock bottom"></div>
+            <div class="dock bottom"></div>
+            <div class="dock top"></div>
+            <div class="dock left"></div>
+            <div class="dock right"></div>
+            <div class="dock bottom"></div>
+            <div class="dock"></div>
+        </div>
+    </div>
+    <script src="../node_modules/b-box/b-box.js"></script>
+    <script src="../dock-n-liquid.js"></script>
+    <script src="test-layout.js"></script>
+    <script>
+        function main() {
+            //testLayout(document.body);
+            testLayout(document.getElementById("layout-root"));
+        }
+    </script>
+</body>
+</html>
