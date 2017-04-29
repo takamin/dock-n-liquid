@@ -1,12 +1,18 @@
 (function(global) {
     "use strict";
-    var BBox = require("b-box");
 
     function each(arr, handler, obj) {
         for(var i = 0; i < arr.length; i++) {
             handler.call(obj, arr[i], i, arr);
         }
     }
+    var BBox = null;
+    try {
+        BBox = require("b-box");
+    } catch(err) {
+        BBox = global.BBox;
+    }
+
     var DOCK_DIR = [ 'top', 'left', 'right', 'bottom' ];
 
     function LayoutElement(element) {
