@@ -40,6 +40,7 @@
         }
 
         this.parseChildren();
+        this.layout();
     }
     LayoutElement.prototype.updateRect = function() {
         if(this._element === document.body) {
@@ -82,6 +83,17 @@
     };
 
     LayoutElement.prototype.layout = function() {
+        this.updateRect();
+        this._layout();
+    };
+    function elementNames(e) {
+        var id = e.id;
+        var c = Array.from(e.classList);
+        return e.nodeName +
+            (id == "" ? "" : "#" + id) +
+            (c.length == 0 ? "" : "." + c.join("."))
+    }
+    LayoutElement.prototype._layout = function() {
         var rect = BBox.Rect.clone(this._containerRect);
 
         // The range is decreased down to its client width and
@@ -94,7 +106,6 @@
             rect.bottom--;
         }
         var zIndexBase = parseInt(this._element.style["z-index"] || "1");
-        console.log("This z-index is " + zIndexBase);
         zIndexBase += this._children.length;
         this._children.forEach(function (child, i) {
             var bboxChild = new BBox(child._element);
@@ -109,7 +120,6 @@
             }
 
             child.setNoArea(isRectAreaZero(rect));
-            console.log("  childlen[" + i + "] z-index is " + zIndexBase);
             child._element.style["z-index"] = zIndexBase--;
 
             if(child._isTop) {
@@ -157,7 +167,7 @@
         });
         this._children.forEach(function (child) {
             if(child._isContainer) {
-                child.layout();
+                child._layout();
             }
         });
     };
@@ -245,9 +255,33 @@
         }, this);
 
         this.parseChildren();
-        this.layout();
+        this._layout();
         return this;
 
+    };
+
+    LayoutElement.prototype.show = function(visibilityState) {
+        var docks = Array.from(this._element.getElementsByClassName("dock"));
+        docks.unshift(this._element);
+        docks.forEach(function(e) {
+            if(visibilityState) {
+                e.style.display = "block";
+                e.style.visibility = "visible";
+            } else {
+                e.style.display = "none";
+                e.style.visibility = "hidden";
+            }
+        });
+        var layoutRoot = this.getLayoutRootElement();
+        LayoutElement.select(layoutRoot).layout();
+    };
+
+    LayoutElement.prototype.getLayoutRootElement = function() {
+        var e = this._element;
+        while(e.parentNode && e.parentNode.classList.contains("dock")) {
+            e = e.parentNode;
+        }
+        return e;
     };
 
     try {
