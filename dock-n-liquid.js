@@ -51,6 +51,8 @@
         } else {
             var bbox = new BBox(this._element);
             this._containerRect = BBox.Rect.fromBBox(bbox);
+            this._containerRect.bottom -=
+                bbox.px("border-top-width") + bbox.px("border-bottom-width");
         }
     };
 
