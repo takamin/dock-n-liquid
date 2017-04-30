@@ -37,9 +37,19 @@
 
         if(!this._isTop && !this._isLeft && !this._isRight && !this._isBottom) {
             this._isContent = true;
+            this._element.classList.add("liquid");
         }
 
         this.parseChildren();
+
+        var computedStyle = this.computedStyle();
+        if(computedStyle.overflowX == "visible") {
+            this._element.style.overflowX = "hidden";
+        }
+        if(computedStyle.overflowY == "visible") {
+            this._element.style.overflowY = "hidden";
+        }
+
         this.layout();
     }
     LayoutElement.prototype.updateRect = function() {
@@ -62,10 +72,9 @@
         this._children = LayoutElement.parseChildren(this._element);
         if(this._children.length > 0) {
             this._element.classList.add("container");
-            this._element.style["overflow"] = "hidden";
             this._isContainer = true;
         } else {
-            this._element.classList.add("liquid");
+            this._element.classList.add("content");
         }
     };
 
@@ -86,6 +95,7 @@
         this.updateRect();
         this._layout();
     };
+
     function elementNames(e) {
         var id = e.id;
         var c = Array.from(e.classList);
@@ -93,6 +103,9 @@
             (id == "" ? "" : "#" + id) +
             (c.length == 0 ? "" : "." + c.join("."))
     }
+    LayoutElement.prototype.computedStyle = function() {
+        return getComputedStyle(this._element);
+    };
     LayoutElement.prototype._layout = function() {
         var rect = BBox.Rect.clone(this._containerRect);
 
@@ -113,8 +126,8 @@
             var childHeight = bboxChild.px("height") + bboxChild.marginVerticalNc();
             child.setBound(rect);
             if(!child._noArea &&
-                    (child._element.style.display == "none" ||
-                     child._element.style.visibility == "hidden"))
+                    (child.computedStyle().display == "none" ||
+                     child.computedStyle().visibility == "hidden"))
             {
                 return;
             }
