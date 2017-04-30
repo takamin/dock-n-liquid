@@ -16,10 +16,12 @@
         border-right-width: 1px;
         border-bottom-width: 1px;
         margin:0; padding:0;
+        overflow-x:hidden;
+        overflow-y:auto;
     }
     .dock.top, .dock.bottom { height: 40px; }
     .dock.left, .dock.right { width: 120px; }
-    .dock.liquid { background-color: #ccc; }
+    .dock.content { background-color: #ccc; }
     .dock.liquid:before { content: "□ Content"; }
     .dock.top:before { content: "↑ Top"; }
     .dock.bottom:before { content: "↓ Bottom"; }
