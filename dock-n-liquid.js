@@ -37,6 +37,7 @@
 
         if(!this._isTop && !this._isLeft && !this._isRight && !this._isBottom) {
             this._isContent = true;
+            this._element.classList.add("liquid");
         }
 
         this.parseChildren();
@@ -71,10 +72,9 @@
         this._children = LayoutElement.parseChildren(this._element);
         if(this._children.length > 0) {
             this._element.classList.add("container");
-            this._element.style["overflow"] = "hidden";
             this._isContainer = true;
         } else {
-            this._element.classList.add("liquid");
+            this._element.classList.add("content");
         }
     };
 
