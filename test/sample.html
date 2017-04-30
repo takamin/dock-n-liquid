@@ -1,40 +1,3 @@
-DOCK'n'LIQUID - npm `dock-n-liquid`
-===================================
-
-This module allows a block element to dock to its container recursively and helps the liquid design.
-
-APIs
-----
-
-### CLASS
-
-* `dock_n_liquid` - enables a simple liquid layout.
-The instance references a single html element which is the root of docking structure.
-The static method 'select' creates and returns an instance of this class.
-
-### STATIC METHOD
-
-* `dock_n_liquid.init()` - initializes all 'dock' elements.
-* `dock_n_liquid.select(element)` - selects a html element and returns `dock_n_liquid` instance.
-* `dock_n_liquid.select(element)` - selects a html element and returns `dock_n_liquid` instance.
-
-### INSTANCE METHOD
-
-* `dock_n_liquid.show(state)` - shows or hides the panel.
-
-AVAILABLE CLASS NAME for HTML ELEMENT
--------------------------------------
-
-* `dock` - declares the element is the panel.
-* `top` -  declares the element docks to the top of the parent element. the `height` style or attribute must be specified.
-* `left` - docks to the left. `width` must be specified.
-* `right` - to the right. `width` must be specified.
-* `bottom` - tothe bottom. `height` required.
-
-EXAMPLE
--------
-
-```html
 <html>
     <head>
         <style>
@@ -104,9 +67,4 @@ EXAMPLE
     </script>
     </body>
 </html>
-```
 
-LICENSE
--------
-
-This software is released under the MIT License, see [LICENSE](LICENSE)

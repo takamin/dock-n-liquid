@@ -348,10 +348,6 @@
             var id = element.substr(1);
             return document.getElementById(id);
 
-        } else if(element.constructor.name === "dock_n_liquid") {
-
-            return element._element;
-
         }
 
         return element;
