@@ -213,6 +213,8 @@
             });
         });
 
+        window.dispatchEvent(new Event("resize"));
+
     };
 
     /* unstable */
