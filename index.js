@@ -1,13 +1,7 @@
 (function(global) {
     "use strict";
 
-    var BBox = null;
-    try {
-        BBox = require("b-box");
-    } catch(err) {
-        BBox = global.BBox;
-    }
-
+    var BBox = require("b-box");
     var DOCK_DIR = [ 'top', 'left', 'right', 'bottom' ];
 
     function dock_n_liquid(element) {
@@ -53,6 +47,7 @@
 
     /**
      * Update the layout of panel
+     * @returns {undefined}
      */
     dock_n_liquid.prototype.layout = function() {
 
@@ -68,7 +63,7 @@
         }
         var zIndexBase = parseInt(this._element.style["z-index"] || "1");
         zIndexBase += this._children.length;
-        this._children.forEach(function (child, i) {
+        this._children.forEach(function (child) {
 
             if(!child._disappeared) {
                 var childStyle = computedStyleOf(child);
@@ -139,6 +134,8 @@
 
     /**
      * Change panels visibility state.
+     * @param {bool} visibilityState New visibility state
+     * @returns {undefined}
      */
     dock_n_liquid.prototype.show = function(visibilityState) {
         var docks = Array.from(this._element.getElementsByClassName("dock"));
@@ -163,10 +160,6 @@
     /**
      * select and return 'Dock-n-Liquid' panel instance.
      *
-     * PARAMETER
-     *
-     * element - reference the panel elements
-     *
      * ```
      * var dock_n_liquid = require("dock-n-liquid");
      *
@@ -174,6 +167,9 @@
      * // or
      * dock_n_liquid.select(document.getElementById("the-root-panel"));
      * ```
+     *
+     * @param {Element|string} element reference the panel elements.
+     * @returns {dock_n_liquid} The created instance referencing the element.
      */
     dock_n_liquid.select = function(element) {
         return new dock_n_liquid(getElement(element));
@@ -183,9 +179,9 @@
      * Initialize 'Dock-n-Liquid' panels.
      * The layout of those are updated when the window is resized.
      *
-     * PARAMETERS
-     * callback - callback function invoked after the window is resized.
-     * callbackObject - a 'this' object of the callback is invoked
+     * @param {Function} callback A function to be invoked after the window is resized.
+     * @param {object} callbackObject A context of the callback.
+     * @returns {undefined}
      */
     dock_n_liquid.init = function(callback, callbackObject) {
         var roots = (function(rootElements) {
@@ -304,21 +300,14 @@
         panel._element.style.bottom = rect.bottom + "px";
     }
 
-    function panelName(panel) {
-        var e = panel._element;
-        var id = e.id;
-        var c = Array.from(e.classList);
-        return e.nodeName +
-            (id == "" ? "" : "#" + id) +
-            (c.length == 0 ? "" : "." + c.join("."))
-    }
-
     function computedStyleOf(panel) {
         return getComputedStyle(panel._element);
     }
 
     /**
      * Is the rect's area zero.
+     * @param {BBox.Rect} rect rect to be checked
+     * @returns {bool} true if the rect's area is zero or false.
      */
     function isRectAreaZero(rect) {
         return rect.top >= rect.bottom || rect.left >= rect.right;
@@ -326,21 +315,25 @@
 
     /**
      * Disappear the panel
+     * @param {dock_n_liquid} panel A target of the operation.
+     * @returns {undefined}
      */
     function disappear(panel) {
         panel._disappeared = true;
         panel._element.style.display = "none";
         panel._element.style.visibility = "hidden";
-    };
+    }
 
     /**
      * Appear the panel
+     * @param {dock_n_liquid} panel A target of the operation.
+     * @returns {undefined}
      */
     function appear(panel) {
         panel._disappeared = false;
         panel._element.style.display = "block";
         panel._element.style.visibility = "visible";
-    };
+    }
 
     function getElement(element) {
 
@@ -366,9 +359,8 @@
 
     try {
         module.exports = dock_n_liquid;
-    } catch (err) {
-        global.dock_n_liquid = dock_n_liquid;
-    }
+    } catch (err) { /* ignore */}
+    global.dock_n_liquid = dock_n_liquid;
 
 }(Function("return this;")()));
 
