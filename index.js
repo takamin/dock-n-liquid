@@ -51,6 +51,11 @@
      */
     dock_n_liquid.prototype.layout = function() {
 
+        // No need to align the detached panel
+        if(this.isDetached()) {
+            return;
+        }
+
         var rect = getRect(this);
         // The range is decreased down to its client width and
         // height by considering for that the scrollbar might be
@@ -64,6 +69,11 @@
         var zIndexBase = parseInt(this._element.style["z-index"] || "1");
         zIndexBase += this._children.length;
         this._children.forEach(function (child) {
+
+            // No need to align the detached panel
+            if(child.isDetached()) {
+                return;
+            }
 
             if(!child._disappeared) {
                 var childStyle = computedStyleOf(child);
@@ -191,13 +201,11 @@
                     !dock.parentNode.classList.contains("dock") &&
                     !rootElements.includes(dock))
                 {
-                    rootElements.push(dock);
+                    rootElements.push(dock_n_liquid.select(dock));
                 }
             });
             return rootElements;
-        }([])).map(function(rootElement) {
-            return dock_n_liquid.select(rootElement);
-        });
+        }([]));
 
         window.addEventListener("resize", function() {
             roots.forEach(function(root) {
@@ -249,7 +257,54 @@
         return div;
     };
 
+    /**
+     * Detach the specific element from layout tree.
+     * @param {Element|string} selector Identify the element.
+     * @returns {undefined}
+     */
+    dock_n_liquid.detach = function(selector) {
+        var element = getElement(selector);
+        if(!element.classList.contains("dock")) {
+            throw new Error("Not dock_n_liquid element");
+        }
+        element.classList.add("detached");
+        window.dispatchEvent(new Event("resize"));
+    };
 
+    /**
+     * Attach the element to its layout tree
+     * @param {Element|string} selector Identify the element.
+     * @returns {undefined}
+     */
+    dock_n_liquid.attach = function(selector) {
+        var element = getElement(selector);
+        if(!element.classList.contains("dock")) {
+            throw new Error("Not dock_n_liquid element");
+        }
+        element.classList.remove("detached");
+        window.dispatchEvent(new Event("resize"));
+    };
+
+    /**
+     * Check if this panel is detached.
+     * @returns {bool} detached or not.
+     */
+    dock_n_liquid.prototype.isDetached = function() {
+        return dock_n_liquid.detached(this._element);
+    };
+
+    /**
+     * Check if this panel is detached.
+     * @param {Element|string} selector Identify the element
+     * @returns {bool} detached or not.
+     */
+    dock_n_liquid.detached = function(selector) {
+        var element = getElement(selector);
+        if(!element.classList.contains("dock")) {
+            throw new Error("Not dock_n_liquid element");
+        }
+        return element.classList.contains("detached");
+    };
 
     /*
      * module private functions
@@ -335,14 +390,21 @@
         panel._element.style.visibility = "visible";
     }
 
-    function getElement(element) {
+    function getElement(selector) {
 
-        if(typeof(element) === "string" &&
-            element.charAt(0) === "#")
-        {
-            var id = element.substr(1);
-            return document.getElementById(id);
-
+        var element = null;
+        if(typeof(selector) === "string") {
+            if(selector.charAt(0) === "#") {
+                var id = selector.substr(1);
+                element = document.getElementById(id);
+            }
+        } else if(typeof(selector) === "object") {
+            if("tagName" in selector) {
+                element = selector;
+            }
+        }
+        if(element == null) {
+            throw new Error("The element is not found.");
         }
 
         return element;
