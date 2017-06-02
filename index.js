@@ -7,9 +7,6 @@
     function dock_n_liquid(element) {
 
         this._element = element;
-        this._isContent = null;
-        this._isContainer = null;
-        this._disappeared = false;
 
         this._element.style["box-sizing"] = "border-box";
         this._element.style["position"] = "absolute";
@@ -18,20 +15,7 @@
         this._element.style["right"] = "0";
         this._element.style["bottom"] = "0";
 
-        DOCK_DIR.forEach(function(clsnam) {
-            var f = [
-                "_is", clsnam.charAt(0).toUpperCase(),
-                clsnam.slice(1)
-            ].join('');
-            this[f] = element.classList.contains(clsnam);
-        }, this);
-
-        if(!this._isTop && !this._isLeft && !this._isRight && !this._isBottom) {
-            this._isContent = true;
-            this._element.classList.add("liquid");
-        }
-
-        parseChildPanelsOf(this);
+        this.updateContainerState();
 
         var computedStyle = computedStyleOf(this);
         if(computedStyle.overflowX == "visible") {
@@ -46,6 +30,49 @@
     }
 
     /**
+     * The docking state to the top.
+     * @returns {bool} the state of docking.
+     */
+    dock_n_liquid.prototype.isTop = function() {
+        return this._element.classList.contains("top");
+    };
+
+    /**
+     * The docking state to the left.
+     * @returns {bool} the state of docking.
+     */
+    dock_n_liquid.prototype.isLeft = function() {
+        return this._element.classList.contains("left");
+    };
+
+    /**
+     * The docking state to the right.
+     * @returns {bool} the state of docking.
+     */
+    dock_n_liquid.prototype.isRight = function() {
+        return this._element.classList.contains("right");
+    };
+
+    /**
+     * The docking state to the bottom.
+     * @returns {bool} the state of docking.
+     */
+    dock_n_liquid.prototype.isBottom = function() {
+        return this._element.classList.contains("bottom");
+    };
+
+    /**
+     * liquid alignment state.
+     * @returns {bool} The state.
+     */
+    dock_n_liquid.prototype.isLiquid = function() {
+        return !this.isTop() &&
+            !this.isLeft() &&
+            !this.isRight() &&
+            !this.isBottom();
+    };
+
+    /**
      * Update the layout of panel
      * @returns {undefined}
      */
@@ -56,26 +83,28 @@
             return;
         }
 
-        var rect = getRect(this);
         // The range is decreased down to its client width and
         // height by considering for that the scrollbar might be
         // shown.
+        var rect = getRect(this);
         while(rect.right - rect.left > this._element.clientWidth) {
             rect.right--;
         }
         while(rect.bottom - rect.top > this._element.clientHeight) {
             rect.bottom--;
         }
+
+        var children = getChildPanelsOf(this);
         var zIndexBase = parseInt(this._element.style["z-index"] || "1");
-        zIndexBase += this._children.length;
-        this._children.forEach(function (child) {
+        zIndexBase += children.length;
+        children.forEach(function (child) {
 
             // No need to align the detached panel
             if(child.isDetached()) {
                 return;
             }
 
-            if(!child._disappeared) {
+            if(!child.disappeared()) {
                 var childStyle = computedStyleOf(child);
                 if(childStyle.display == "none" ||
                    childStyle.visibility == "hidden")
@@ -96,25 +125,25 @@
             }
             child._element.style["z-index"] = zIndexBase--;
 
-            if(child._isTop) {
+            if(child.isTop()) {
                 child._element.style.bottom = rect.top + childHeight + "px";
                 child._element.style.width =
                     ((rect.right - rect.left)
                      - bboxChild.marginHorizontalNc()) + "px";
                 rect.top += childHeight;
-            } else if(child._isLeft) {
+            } else if(child.isLeft()) {
                 child._element.style.right = rect.left + childWidth + "px";
                 child._element.style.height =
                     ((rect.bottom - rect.top)
                      - bboxChild.marginVerticalNc()) + "px";
                 rect.left += childWidth;
-            } else if(child._isRight) {
+            } else if(child.isRight()) {
                 child._element.style.left = rect.right - childWidth + "px";
                 child._element.style.height =
                     ((rect.bottom - rect.top)
                      - bboxChild.marginVerticalNc()) + "px";
                 rect.right -= childWidth;
-            } else if(child._isBottom) {
+            } else if(child.isBottom()) {
                 child._element.style.top = rect.bottom - childHeight + "px";
                 child._element.style.width =
                     ((rect.right - rect.left)
@@ -123,8 +152,8 @@
             }
 
         }, this);
-        this._children.forEach(function (child) {
-            if(child._isContent) {
+        children.forEach(function (child) {
+            if(child.isLiquid()) {
                 setRect(child, rect);
                 var bboxChild = new BBox(child._element);
                 child._element.style.width =
@@ -135,8 +164,13 @@
                      - bboxChild.marginVerticalNc()) + "px";
             }
         });
-        this._children.forEach(function (child) {
-            if(child._isContainer) {
+        children.forEach(function (child) {
+            if(child.isDetached()) {
+                child._element.style["z-index"] = zIndexBase + children.length + 1;
+            }
+        });
+        children.forEach(function (child) {
+            if(getChildPanelsOf(child).length > 0) {
                 child.layout();
             }
         });
@@ -232,7 +266,8 @@
             this._element.appendChild(getElement(item));
         }, this);
 
-        parseChildPanelsOf(this);
+        this.updateContainerState();
+
         this.layout();
         return this;
 
@@ -255,6 +290,14 @@
             parentElement.appendChild(div);
         }
         return div;
+    };
+
+    /**
+     * Disappeared state.
+     * @returns {bool} true: disappeared, false: appeared
+     */
+    dock_n_liquid.prototype.disappeared = function() {
+        return this._element.classList.contains("disappeared");
     };
 
     /**
@@ -306,28 +349,41 @@
         return element.classList.contains("detached");
     };
 
+    /**
+     * Update the element class by its count of child docks.
+     * @returns {undefined}
+     */
+    dock_n_liquid.prototype.updateContainerState = function() {
+        if(this.isLiquid()) {
+            this._element.classList.add("liquid");
+        } else {
+            this._element.classList.remove("liquid");
+        }
+        var children = getChildPanelsOf(this);
+        if(children.length > 0) {
+            this._element.classList.add("container");
+            this._element.classList.remove("content");
+        } else {
+            this._element.classList.remove("container");
+            this._element.classList.add("content");
+        }
+    };
+
     /*
      * module private functions
      */
 
-    function parseChildPanelsOf(panel) {
-        panel._children = (function(element, result) {
-            var docks = element.getElementsByClassName('dock');
-            if(docks && docks.length > 0) {
-                Array.from(docks).forEach(function(e) {
-                    if(e.parentNode === element) {
-                        result.push(new dock_n_liquid(e));
-                    }
-                });
-            }
-            return result;
-        }(panel._element, []));
-        if(panel._children.length > 0) {
-            panel._element.classList.add("container");
-            panel._isContainer = true;
-        } else {
-            panel._element.classList.add("content");
+    function getChildPanelsOf(panel) {
+        var children = [];
+        var docks = panel._element.getElementsByClassName('dock');
+        if(docks && docks.length > 0) {
+            Array.from(docks).forEach(function(e) {
+                if(e.parentNode === panel._element) {
+                    children.push(new dock_n_liquid(e));
+                }
+            });
         }
+        return children;
     }
 
     function getRect(panel) {
@@ -374,9 +430,11 @@
      * @returns {undefined}
      */
     function disappear(panel) {
-        panel._disappeared = true;
-        panel._element.style.display = "none";
-        panel._element.style.visibility = "hidden";
+        if(!panel.disappeared()) {
+            panel._element.classList.add("disappeared");
+            panel._element.style.display = "none";
+            panel._element.style.visibility = "hidden";
+        }
     }
 
     /**
@@ -385,9 +443,11 @@
      * @returns {undefined}
      */
     function appear(panel) {
-        panel._disappeared = false;
-        panel._element.style.display = "block";
-        panel._element.style.visibility = "visible";
+        if(panel.disappeared()) {
+            panel._element.classList.remove("disappeared");
+            panel._element.style.display = "block";
+            panel._element.style.visibility = "visible";
+        }
     }
 
     function getElement(selector) {
