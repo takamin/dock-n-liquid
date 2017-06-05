@@ -8,25 +8,39 @@
 
         this._element = element;
 
-        this._element.style["box-sizing"] = "border-box";
-        this._element.style["position"] = "absolute";
-        this._element.style["top"] = "0";
-        this._element.style["left"] = "0";
-        this._element.style["right"] = "0";
-        this._element.style["bottom"] = "0";
+        if(!this._element.classList.contains("dock_n_liquid")) {
 
-        this.updateContainerState();
+            this._element.classList.add("dock_n_liquid");
 
-        var computedStyle = computedStyleOf(this);
-        if(computedStyle.overflowX == "visible") {
-            this._element.style.overflowX = "hidden";
+            this._element.style["box-sizing"] = "border-box";
+            this._element.style["position"] = "absolute";
+            this._element.style["top"] = "0";
+            this._element.style["left"] = "0";
+            this._element.style["right"] = "0";
+            this._element.style["bottom"] = "0";
+
+            // Set "dragover" event listener
+            // to allow a resizing operation by dragging to
+            // the top layout panel.
+            if(isLayoutTop(this._element)) {
+                this.allowChildResize();
+            } else if(this.isResizable()) {
+                this.createResizer();
+            }
+
+            this.updateContainerState();
+            var computedStyle = getComputedStyle(this._element);
+
+            if(computedStyle.overflowX == "visible") {
+                this._element.style.overflowX = "hidden";
+            }
+            if(computedStyle.overflowY == "visible") {
+                this._element.style.overflowY = "hidden";
+            }
+
+            this.layout();
+            this.layout();
         }
-        if(computedStyle.overflowY == "visible") {
-            this._element.style.overflowY = "hidden";
-        }
-
-        this.layout();
-        this.layout();
     }
 
     /**
@@ -105,7 +119,7 @@
             }
 
             if(!child.disappeared()) {
-                var childStyle = computedStyleOf(child);
+                var childStyle = getComputedStyle(child._element);
                 if(childStyle.display == "none" ||
                    childStyle.visibility == "hidden")
                 {
@@ -172,6 +186,7 @@
         children.forEach(function (child) {
             if(getChildPanelsOf(child).length > 0) {
                 child.layout();
+                child.layout();
             }
         });
     };
@@ -194,7 +209,9 @@
             }
         });
         var layoutRoot = rootElementOf(this);
-        dock_n_liquid.select(layoutRoot).layout();
+        var root = dock_n_liquid.select(layoutRoot);
+        root.layout();
+        root.layout();
     };
 
     /*
@@ -231,10 +248,7 @@
         var roots = (function(rootElements) {
             Array.from(document.getElementsByClassName("dock"))
             .forEach(function(dock) {
-                if(dock.parentNode && dock.parentNode.nodeType == 1 &&
-                    !dock.parentNode.classList.contains("dock") &&
-                    !rootElements.includes(dock))
-                {
+                if(isLayoutTop(dock) && !rootElements.includes(dock)) {
                     rootElements.push(dock_n_liquid.select(dock));
                 }
             });
@@ -374,16 +388,14 @@
      */
 
     function getChildPanelsOf(panel) {
-        var children = [];
-        var docks = panel._element.getElementsByClassName('dock');
-        if(docks && docks.length > 0) {
-            Array.from(docks).forEach(function(e) {
-                if(e.parentNode === panel._element) {
-                    children.push(new dock_n_liquid(e));
+        return (function(docks) {
+            Array.from(panel._element.childNodes).forEach(function(node) {
+                if(node.nodeType == 1 && node.classList.contains("dock")) {
+                    docks.push(new dock_n_liquid(node));
                 }
             });
-        }
-        return children;
+            return docks;
+        }([]));
     }
 
     function getRect(panel) {
@@ -409,10 +421,6 @@
         panel._element.style.left = rect.left + "px";
         panel._element.style.right = rect.right + "px";
         panel._element.style.bottom = rect.bottom + "px";
-    }
-
-    function computedStyleOf(panel) {
-        return getComputedStyle(panel._element);
     }
 
     /**
@@ -478,6 +486,177 @@
         }
         return e;
     }
+
+    /**
+     * Check this is top docking panel of layout tree.
+     * @param {Element} element an element to be checked.
+     * @returns {bool} top or not.
+     */
+    function isLayoutTop(element) {
+        var parentNode = element.parentNode;
+        if(!parentNode || parentNode.nodeType != 1 ||
+                !parentNode.classList.contains("dock"))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Width or height of a handle to resize a panel.
+     * @type {number}
+     */
+    var _resizerWidth = 5;
+
+    /**
+     * Listen "dragover" event and allow resize operation for the child elements.
+     * @return {undefined}
+     */
+    dock_n_liquid.prototype.allowChildResize = function() {
+        this._element.addEventListener("dragover",
+                function(event) {
+                    console.log(event.dataTransfer.types.join(", "));
+                    event.preventDefault();
+                    return false;
+                }.bind(this), false);
+    };
+
+    /**
+     * Returns the state of resizing of this panel.
+     * @returns {bool} the resizability of this panel.
+     */
+    dock_n_liquid.prototype.isResizable = function() {
+        if(this._element.classList.contains("resizable") &&
+                (this.isTop() || this.isLeft() || this.isRight() || this.isBottom()))
+        {
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * Create resizer handle. It is also dock panel.
+     * @returns {undefined}
+     */
+    dock_n_liquid.prototype.createResizer = function() {
+
+        // Create new client area and append all original child nodes.
+        var clientArea = document.createElement("DIV");
+        clientArea.classList.add("dock");
+        var orgChildNodes = Array.from(this._element.childNodes);
+        this._element.appendChild(clientArea);
+        orgChildNodes.forEach(function(node) {
+            clientArea.appendChild(node);
+        });
+
+        // Create a resizer handle.
+        var resizer = document.createElement("DIV");
+        this._element.appendChild(resizer);
+        resizer.classList.add("resizer");
+
+        // The resizer will be initialized as dock_n_liquid
+        resizer.classList.add("dock");
+        if(this.isTop()) {
+            resizer.classList.add("bottom");
+            resizer.classList.add("vertical");
+            resizer.style.height = _resizerWidth + "px";
+        } else if(this.isLeft()) {
+            resizer.classList.add("right");
+            resizer.classList.add("horizontal");
+            resizer.style.width = _resizerWidth + "px";
+        } else if(this.isRight()) {
+            resizer.classList.add("left");
+            resizer.classList.add("horizontal");
+            resizer.style.width = _resizerWidth + "px";
+        } else if(this.isBottom()) {
+            resizer.classList.add("top");
+            resizer.classList.add("vertical");
+            resizer.style.height = _resizerWidth + "px";
+        }
+
+        // Setup as draggable
+        resizer.setAttribute("draggable", "true");
+        resizer.addEventListener("dragstart",
+                this.resizerDragStart.bind(this), false);
+        resizer.addEventListener("dragend",
+                this.resizerDragEnd.bind(this), false);
+        resizer.addEventListener("drag",
+                this.resizerDrag.bind(this), false);
+
+    };
+
+    /**
+     * dragstart event handler for the resizer.
+     * @param {Event} event event object
+     * @returns {undefined}
+     */
+    dock_n_liquid.prototype.resizerDragStart = function(event) {
+
+        event.dataTransfer.effectAllowed = "move";
+        this._drag = {
+            "startX": event.offsetX,
+            "startY": event.offsetY,
+            "width": parseInt(this._element.style.right) -
+                    parseInt(this._element.style.left),
+            "height": parseInt(this._element.style.bottom) -
+                    parseInt(this._element.style.top),
+        };
+        event.target.classList.add("resizing");
+        event.stopPropagation();
+
+    };
+
+    /**
+     * dragend event handler for the resizer.
+     * @param {Event} event event object
+     * @returns {undefined}
+     */
+    dock_n_liquid.prototype.resizerDragEnd = function(event) {
+
+        this.resizeByDragEvent(event);
+        event.target.classList.remove("resizing");
+        event.stopPropagation();
+        event.preventDefault();
+    };
+
+    /**
+     * drag event handler for the resizer.
+     * @param {Event} event event object
+     * @returns {undefined}
+     */
+    dock_n_liquid.prototype.resizerDrag = function() {
+        event.stopPropagation();
+    };
+
+    /**
+     * Resize the panel by dragend event.
+     * @param {Event} event event object
+     * @returns {undefined}
+     */
+    dock_n_liquid.prototype.resizeByDragEvent = function(event) {
+
+        var dx = event.offsetX - this._drag.startX;
+        var dy = event.offsetY - this._drag.startY;
+        var layoutRoot = rootElementOf(this);
+
+        var astyle = getComputedStyle(this._element);
+        var h = parseInt(astyle.height);
+        var w = parseInt(astyle.width);
+        var root = dock_n_liquid.select(layoutRoot);
+
+        if(this.isTop()) {
+            this._element.style.height = (h + dy) + "px";
+        } else if(this.isLeft()) {
+            this._element.style.width = (w + dx) + "px";
+        } else if(this.isRight()) {
+            this._element.style.width = (w - dx) + "px";
+        } else if(this.isBottom()) {
+            this._element.style.height = (h - dy) + "px";
+        }
+        root.layout();
+        root.layout();
+    }
+
 
     try {
         module.exports = dock_n_liquid;
