@@ -4,6 +4,11 @@
     var BBox = require("b-box");
     var DOCK_DIR = [ 'top', 'left', 'right', 'bottom' ];
 
+    /**
+     * dock_n_liquid class constructor
+     * @param {Element} element an element to be created as docking panel.
+     * @constructor
+     */
     function dock_n_liquid(element) {
 
         this._element = element;
@@ -387,6 +392,11 @@
      * module private functions
      */
 
+    /**
+     * Get child panels.
+     * @param {dock_n_liquid} panel parent panel.
+     * @returns {dock_n_liquid[]} child panels
+     */
     function getChildPanelsOf(panel) {
         return (function(docks) {
             Array.from(panel._element.childNodes).forEach(function(node) {
@@ -398,6 +408,11 @@
         }([]));
     }
 
+    /**
+     * Get rect of panel.
+     * @param {dock_n_liquid} panel the panel to get.
+     * @returns {BBox.Rect} rect object of panel.
+     */
     function getRect(panel) {
         var rect = null;
         if(panel._element === document.body) {
@@ -416,6 +431,12 @@
         return rect;
     }
 
+    /**
+     * Set rect of panel.
+     * @param {dock_n_liquid} panel the panel to set.
+     * @param {BBox.Rect} rect rectangle to be set.
+     * @returns {undefined} rect object of panel.
+     */
     function setRect(panel, rect) {
         panel._element.style.top = rect.top + "px";
         panel._element.style.left = rect.left + "px";
@@ -458,6 +479,11 @@
         }
     }
 
+    /**
+     * Get DOM element.
+     * @param {string|Element} selector the element selector by id
+     * @returns {Element} the element that found in DOM tree.
+     */
     function getElement(selector) {
 
         var element = null;
@@ -479,6 +505,11 @@
 
     }
 
+    /**
+     * Get the top docking panel of layout tree.
+     * @param {dock_n_liquid} panel a starting point of the tree.
+     * @returns {Element} top docking panel element.
+     */
     function rootElementOf(panel) {
         var e = panel._element;
         while(e.parentNode && e.parentNode.classList.contains("dock")) {
