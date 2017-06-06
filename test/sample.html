@@ -20,21 +20,34 @@
         .dock.bottom { background-color: #442; }
         .dock.left { background-color: #244; }
         .dock.right { background-color: #888; }
+        .dock.resizer {
+            border-width: 0px;
+            background-color: #ccc;
+        }
+        .dock.horizontal.resizer {
+            cursor: ew-resize;
+        }
+        .dock.vertical.resizer {
+            cursor: ns-resize;
+        }
+        .dock.resizer.resizing {
+            background-color: #f00;
+        }
         </style>
     </head>
     <body onload="main();">
     <div class="dock">
-        <div class="dock top" style="height: 60px;">
+        <div class="dock top resizable" style="height: 60px;">
             <h1>Docking to the top</h1>
         </div>
-        <div class="dock left" style="width:120px;">
+        <div class="dock left resizable" style="width:120px;">
             <div class="dock top" style="height:20px;">menu#1</div>
             <div class="dock top" style="height:20px;">menu#2</div>
             <div class="dock top" style="height:20px;">menu#3</div>
             <div class="dock top" style="height:20px;">menu#4</div>
             <div class="dock top" style="height:20px;">menu#5</div>
         </div>
-        <div id="panelRight" class="dock right"
+        <div id="panelRight" class="dock right resizable"
             style="width:120px;overflow-y:auto">
             <div class="dock top" style="height:20px;">content#1</div>
             <div class="dock top" style="height:20px;">content#2</div>
@@ -47,11 +60,10 @@
             <button type="button" onclick="hidePanelRight();">hide panel right</button>
             <button type="button" onclick="showPanelRight();">show panel right</button>
         </div>
-        <div class="dock bottom" style="height:40px;">
+        <div class="dock bottom resizable" style="height:40px;">
             MIT LICENSE
         </div>
     </div>
-    <script src="../node_modules/b-box/b-box.js"></script>
     <script src="../dock-n-liquid.js"></script>
     <script>
     function main() {

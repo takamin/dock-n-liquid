@@ -1,8 +1,8 @@
 {
   "name": "dock-n-liquid",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Liquid alignment for border-box element",
-  "main": "dock-n-liquid.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
@@ -22,9 +22,30 @@
   },
   "homepage": "https://github.com/takamin/dock-n-liquid#readme",
   "dependencies": {
-    "b-box": "^0.1.1"
+    "b-box": "^0.1.1",
+    "rough-name": "^1.0.0"
   },
   "devDependencies": {
-    "chai": "^3.5.0"
+    "chai": "^3.5.0",
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-uglify": "^3.0.1",
+    "grunt-eslint": "^19.0.0",
+    "load-grunt-tasks": "^3.5.2",
+    "mocha": "^3.4.2"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "mocha": true
+    },
+    "globals": {},
+    "rules": {
+      "no-console": "off",
+      "valid-jsdoc": "warn"
+    },
+    "extends": "eslint:recommended"
   }
 }
