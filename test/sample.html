@@ -55,7 +55,7 @@
             <div class="dock top" style="height:20px;">content#4</div>
             <div class="dock top" style="height:20px;">content#5</div>
         </div>
-        <div class="dock">
+        <div id="fullscrn-panel" class="dock">
             The Content that occupies the rest of client area.
             <button type="button" onclick="hidePanelRight();">hide panel right</button>
             <button type="button" onclick="showPanelRight();">show panel right</button>
@@ -65,8 +65,35 @@
         </div>
     </div>
     <script src="../dock-n-liquid.js"></script>
+    <script src="../node_modules/fullscrn/fullscrn.js"></script>
     <script>
     function main() {
+        (function(d) {
+            if(d.fullscreenEnabled) {
+                var fullscrnPanel = d.getElementById("fullscrn-panel");
+                var btnFullscrn = d.createElement("BUTTON");
+                var btnFullscrnClick = function(event) {
+                    if(d.fullscreenElement !== fullscrnPanel) {
+                        dock_n_liquid.requestFullscreen(fullscrnPanel);
+                    } else {
+                        dock_n_liquid.exitFullscreen();
+                    }
+                };
+                var fullscreenChange = function(event) {
+                    if(d.fullscreenElement !== fullscrnPanel) {
+                        btnFullscrn.innerHTML = "Request Fullscreen";
+                    } else {
+                        btnFullscrn.innerHTML = "Exit Fullscreen";
+                    }
+                };
+                btnFullscrn.setAttribute("type", "button");
+                btnFullscrn.addEventListener("click", btnFullscrnClick );
+                fullscrnPanel.appendChild(btnFullscrn);
+                d.addEventListener("fullscreenchange", fullscreenChange);
+
+                fullscreenChange();
+            }
+        }(document));
         dock_n_liquid.init();
     }
     function hidePanelRight() {

@@ -2,6 +2,7 @@
     "use strict";
 
     var BBox = require("b-box");
+    var fullscrn = require("fullscrn");
     var DOCK_DIR = [ 'top', 'left', 'right', 'bottom' ];
 
     /**
@@ -213,7 +214,7 @@
                 e.style.visibility = "hidden";
             }
         });
-        var layoutRoot = rootElementOf(this);
+        var layoutRoot = rootElementOf(this._element);
         var root = dock_n_liquid.select(layoutRoot);
         root.layout();
         root.layout();
@@ -250,6 +251,7 @@
      * @returns {undefined}
      */
     dock_n_liquid.init = function(callback, callbackObject) {
+
         var roots = (function(rootElements) {
             Array.from(document.getElementsByClassName("dock"))
             .forEach(function(dock) {
@@ -260,7 +262,7 @@
             return rootElements;
         }([]));
 
-        window.addEventListener("resize", function() {
+        var alignLayoutAll = function() {
             roots.forEach(function(root) {
                 root.layout();
                 root.layout();
@@ -268,9 +270,24 @@
                     callback.call(callbackObject);
                 }
             });
+        };
+
+        window.addEventListener("resize", function() {
+            if(fullscrn.enabled && fullscrn.element != null) {
+                if(fullscrn.element.classList.contains("dock"))
+                {
+                    expandFullscreen(fullscrn.element);
+                }
+                return;
+            }
+            alignLayoutAll();
         });
 
-        window.dispatchEvent(new Event("resize"));
+        document.addEventListener("fullscreenchange", function() {
+            if(fullscrn.element == null) {
+                alignLayoutAll();
+            }
+        });
 
     };
 
@@ -330,7 +347,8 @@
             throw new Error("Not dock_n_liquid element");
         }
         element.classList.add("detached");
-        window.dispatchEvent(new Event("resize"));
+        parentPanelOf(element).layout();
+        parentPanelOf(element).layout();
     };
 
     /**
@@ -344,8 +362,25 @@
             throw new Error("Not dock_n_liquid element");
         }
         element.classList.remove("detached");
-        window.dispatchEvent(new Event("resize"));
+        var layoutRoot = rootElementOf(element);
+        var root = dock_n_liquid.select(layoutRoot);
+        root.layout();
+        root.layout();
     };
+
+    function parentPanelOf(element, count) {
+        var i = 0;
+        count = count || 1;
+        while(i < count &&
+            element.parentNode != null &&
+            element.parentNode.nodeType == 1 &&
+            element.parentNode.classList.contains("dock"))
+        {
+            element = element.parentNode;
+            i++;
+        }
+        return dock_n_liquid.select(element);
+    }
 
     /**
      * Check if this panel is detached.
@@ -387,6 +422,50 @@
             this._element.classList.add("content");
         }
     };
+
+    /**
+     * Request the dock panel to be fullscreen mode.
+     * @param {Element} element A target of the request.
+     * @returns {Promise} A promise that resolve the operation is completed.
+     */
+    dock_n_liquid.requestFullscreen = function(element) {
+        if(!fullscrn.enabled) {
+            throw new Error("Fullscreen-API is unavailable");
+        }
+        if(element.classList.contains("dock") &&
+            !element.classList.contains("detached"))
+        {
+            dock_n_liquid.detach(element);
+        }
+        return element.requestFullscreen().then(function() {
+            expandFullscreen(element);
+        });
+    };
+
+    /**
+     * Exit fullscreen mode.
+     * @returns {Promise} A promise that resolve the operation is completed.
+     */
+    dock_n_liquid.exitFullscreen = function() {
+        if(!fullscrn.enabled) {
+            throw new Error("Fullscreen-API is unavailable");
+        }
+        if(fullscrn.element.classList.contains("dock") &&
+            fullscrn.element.classList.contains("detached"))
+        {
+            dock_n_liquid.attach(fullscrn.element);
+        }
+        return document.exitFullscreen();
+    };
+
+    function expandFullscreen(e) {
+        e.style.top = "0px";
+        e.style.left = "0px";
+        e.style.right = window.innerWidth + "px";
+        e.style.bottom = window.innerHeight + "px";
+        e.style.width = window.innerWidth + "px";
+        e.style.height = window.innerHeight + "px";
+    }
 
     /*
      * module private functions
@@ -506,16 +585,15 @@
     }
 
     /**
-     * Get the top docking panel of layout tree.
-     * @param {dock_n_liquid} panel a starting point of the tree.
+     * Get a top element of layout tree from a specific element.
+     * @param {Element} element a starting point of the tree.
      * @returns {Element} top docking panel element.
      */
-    function rootElementOf(panel) {
-        var e = panel._element;
-        while(e.parentNode && e.parentNode.classList.contains("dock")) {
-            e = e.parentNode;
+    function rootElementOf(element) {
+        while(element.parentNode && element.parentNode.classList.contains("dock")) {
+            element = element.parentNode;
         }
-        return e;
+        return element;
     }
 
     /**
@@ -668,7 +746,7 @@
 
         var dx = event.offsetX - this._drag.startX;
         var dy = event.offsetY - this._drag.startY;
-        var layoutRoot = rootElementOf(this);
+        var layoutRoot = rootElementOf(this._element);
 
         var astyle = getComputedStyle(this._element);
         var h = parseInt(astyle.height);
