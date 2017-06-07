@@ -17,12 +17,14 @@ The static method 'select' creates and returns an instance of this class.
 
 * `dock_n_liquid.init()` - initializes all 'dock' elements and those layouts will be aligned automatic.
 * `dock_n_liquid.select(element)` - selects a html element and returns `dock_n_liquid` instance.
+* `dock_n_liquid.requestFullscreen(element)` - requests to be a fullscreen mode.
+* `dock_n_liquid.exitFullscreen()` - exits from the fullscreen mode.
+* `dock_n_liquid.detach()` - detaches the element from its layout tree.
+* `dock_n_liquid.attach()` - re-attach the element to its layout tree.
 
 ### INSTANCE METHOD
 
 * `dock_n_liquid.show(state)` - shows or hides the panel.
-* `dock_n_liquid.detach()` - detaches the element from its layout tree.
-* `dock_n_liquid.attach()` - re-attach the element to its layout tree.
 
 AVAILABLE CLASS NAME for HTML ELEMENT
 -------------------------------------
