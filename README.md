@@ -15,12 +15,13 @@ The static method 'select' creates and returns an instance of this class.
 
 ### STATIC METHOD
 
-* `dock_n_liquid.init()` - initializes all 'dock' elements and those layouts will be aligned automatic.
+* __`dock_n_liquid.init()`__ - initializes all `dock` classed elements as a `dock_n_liquid` panel.
+Those will be aligned the layouts in automatic.
 * `dock_n_liquid.select(element)` - selects a html element and returns `dock_n_liquid` instance.
 * `dock_n_liquid.requestFullscreen(element)` - requests to be a fullscreen mode.
 * `dock_n_liquid.exitFullscreen()` - exits from the fullscreen mode.
 * `dock_n_liquid.detach()` - detaches the element from its layout tree.
-* `dock_n_liquid.attach()` - re-attach the element to its layout tree.
+* `dock_n_liquid.attach()` - re-attaches the element to its layout tree.
 
 ### INSTANCE METHOD
 
@@ -34,10 +35,14 @@ AVAILABLE CLASS NAME for HTML ELEMENT
 * `left` - docks to the left. `width` must be specified.
 * `right` - to the right. `width` must be specified.
 * `bottom` - to the bottom. `height` required.
-* `resizable` - the panel can be resize by dragging.
+* `resizable` - The panel could be resized by dragging a handle generated on its edge.
+After the completion of resizing, a `window.resize` event will be dispatched.
+
 
 EXAMPLE
 -------
+
+Sorry, too long code....
 
 ```html
 <html>
@@ -97,7 +102,7 @@ EXAMPLE
             <div class="dock top" style="height:20px;">content#4</div>
             <div class="dock top" style="height:20px;">content#5</div>
         </div>
-        <div class="dock">
+        <div id="fullscrn-panel" class="dock">
             The Content that occupies the rest of client area.
             <button type="button" onclick="hidePanelRight();">hide panel right</button>
             <button type="button" onclick="showPanelRight();">show panel right</button>
@@ -107,8 +112,35 @@ EXAMPLE
         </div>
     </div>
     <script src="../dock-n-liquid.js"></script>
+    <script src="../node_modules/fullscrn/fullscrn.js"></script>
     <script>
     function main() {
+        (function(d) {
+            if(d.fullscreenEnabled) {
+                var fullscrnPanel = d.getElementById("fullscrn-panel");
+                var btnFullscrn = d.createElement("BUTTON");
+                var btnFullscrnClick = function(event) {
+                    if(d.fullscreenElement !== fullscrnPanel) {
+                        dock_n_liquid.requestFullscreen(fullscrnPanel);
+                    } else {
+                        dock_n_liquid.exitFullscreen();
+                    }
+                };
+                var fullscreenChange = function(event) {
+                    if(d.fullscreenElement !== fullscrnPanel) {
+                        btnFullscrn.innerHTML = "Request Fullscreen";
+                    } else {
+                        btnFullscrn.innerHTML = "Exit Fullscreen";
+                    }
+                };
+                btnFullscrn.setAttribute("type", "button");
+                btnFullscrn.addEventListener("click", btnFullscrnClick );
+                fullscrnPanel.appendChild(btnFullscrn);
+                d.addEventListener("fullscreenchange", fullscreenChange);
+
+                fullscreenChange();
+            }
+        }(document));
         dock_n_liquid.init();
     }
     function hidePanelRight() {
@@ -121,6 +153,7 @@ EXAMPLE
     </script>
     </body>
 </html>
+
 ```
 
 LICENSE
