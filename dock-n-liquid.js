@@ -765,6 +765,7 @@
         }
         root.layout();
         root.layout();
+        window.dispatchEvent(new Event("resize"));
     }
 
 
