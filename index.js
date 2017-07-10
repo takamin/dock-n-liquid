@@ -624,7 +624,6 @@
     dock_n_liquid.prototype.allowChildResize = function() {
         this._element.addEventListener("dragover",
                 function(event) {
-                    console.log(event.dataTransfer.types.join(", "));
                     event.preventDefault();
                     return false;
                 }.bind(this), false);
