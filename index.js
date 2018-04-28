@@ -13,6 +13,7 @@
     function dock_n_liquid(element) {
 
         this._element = element;
+        this._drag = null;// the drag starting point information
 
         if(!this._element.classList.contains("dock_n_liquid")) {
 
@@ -599,6 +600,7 @@
     /**
      * Check this is top docking panel of layout tree.
      * @param {Element} element an element to be checked.
+     * This is a premise that it is a docking panel.
      * @returns {bool} top or not.
      */
     function isLayoutTop(element) {
@@ -618,15 +620,28 @@
     var _resizerWidth = 5;
 
     /**
-     * Listen "dragover" event and allow resize operation for the child elements.
+     * Listen events for a drop target and allow resize operation for the child elements.
      * @return {undefined}
      */
     dock_n_liquid.prototype.allowChildResize = function() {
-        this._element.addEventListener("dragover",
-                function(event) {
-                    event.preventDefault();
-                    return false;
-                }.bind(this), false);
+
+        // events fired on the drop taget.
+        document.addEventListener("dragover", function( event ) {
+
+            // In Firefox to allow the dragging, this is needed.
+            // It seems no need in the other browsers.
+            event.preventDefault();
+
+        }.bind(this), false);
+
+        document.addEventListener("drop", function( event ) {
+
+            // Unless this, The drop causes the page may go to the
+            // meaningless location especially in Firefoxa.
+            event.preventDefault();
+
+        }.bind(this), false);
+
     };
 
     /**
@@ -701,9 +716,18 @@
     dock_n_liquid.prototype.resizerDragStart = function(event) {
 
         event.dataTransfer.effectAllowed = "move";
+
+        // Set dummy dragging data.
+        // Essentially the dragging will not start without data.
+        // Firefox accept null as the data, but Edge does not.
+        // And Chrome does not need this invocation.
+        event.dataTransfer.setData('text/plain', "");
+
+        // Store informations of starting point of dragging
+        // offset X / Y is not legal. Use screen X / Y.
         this._drag = {
-            "startX": event.offsetX,
-            "startY": event.offsetY,
+            "startX": event.screenX,
+            "startY": event.screenY,
             "width": parseInt(this._element.style.right) -
                     parseInt(this._element.style.left),
             "height": parseInt(this._element.style.bottom) -
@@ -722,6 +746,7 @@
     dock_n_liquid.prototype.resizerDragEnd = function(event) {
 
         this.resizeByDragEvent(event);
+        this._drag = null;
         event.target.classList.remove("resizing");
         event.stopPropagation();
         event.preventDefault();
@@ -732,7 +757,7 @@
      * @param {Event} event event object
      * @returns {undefined}
      */
-    dock_n_liquid.prototype.resizerDrag = function() {
+    dock_n_liquid.prototype.resizerDrag = function( event ) {
         event.stopPropagation();
     };
 
@@ -743,8 +768,9 @@
      */
     dock_n_liquid.prototype.resizeByDragEvent = function(event) {
 
-        var dx = event.offsetX - this._drag.startX;
-        var dy = event.offsetY - this._drag.startY;
+        // offset X / Y is not legal. Use screen X / Y.
+        var dx = event.screenX - this._drag.startX;
+        var dy = event.screenY - this._drag.startY;
         var layoutRoot = rootElementOf(this._element);
 
         var astyle = getComputedStyle(this._element);
