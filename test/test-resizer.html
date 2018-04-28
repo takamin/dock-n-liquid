@@ -63,26 +63,10 @@
             <div class="dock"></div>
         </div>
     </div>
-    <script src="../node_modules/b-box/b-box.js"></script>
-    <script src="../node_modules/rough-name/rough-name.js"></script>
     <script src="../dock-n-liquid.js"></script>
     <script src="test-layout.js"></script>
     <script>
         function main() {
-            var docks = Array.from(document.getElementsByClassName("dock"));
-            docks.forEach(function(e) {
-                e.addEventListener("click",
-                        function(event) {
-                            if(dock_n_liquid.detached(e)) {
-                                dock_n_liquid.attach(e);
-                            } else {
-                                dock_n_liquid.detach(e);
-                            }
-                            event.stopPropagation();
-                            event.preventDefault();
-                        });
-            });
-            //testLayout(document.body);
             testLayout(document.getElementById("layout-root"));
         }
     </script>
